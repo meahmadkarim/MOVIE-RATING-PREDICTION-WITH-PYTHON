@@ -32,3 +32,15 @@ The original notebook is retained as a learning artefact. Cleared notebook outpu
 ## Verified run
 
 With the included CSV, pinned direct dependencies and 100 trees: 1,584 held-out rows; MAE 0.9064, RMSE 1.1789; mean-prediction baseline MAE 1.1072 (seed 42). This random split does not establish performance on future releases.
+
+## Model, libraries and data flow
+
+The maintained model is **random-forest regression**, not linear regression. It predicts the numeric `Rating` column from release year, genre, director and three actor fields.
+
+1. **pandas** reads the Latin-1 CSV, removes rows without a target rating and extracts four-digit years with a regular expression.
+2. **scikit-learn `train_test_split`** reserves 20% of rows for evaluation with seed 42.
+3. **`ColumnTransformer`** applies median imputation to year. Categorical fields use constant `Unknown` imputation and **`OneHotEncoder(handle_unknown='ignore')`**, allowing unseen test categories.
+4. **`Pipeline`** fits preprocessing and **`RandomForestRegressor`** together on training rows. The default is 100 trees, seed 42 and one worker; `--trees` changes the ensemble size.
+5. **`mean_absolute_error` and `mean_squared_error`** measure error; RMSE is the square root of MSE. **`DummyRegressor(strategy='mean')`** tests whether the model improves on predicting the training mean.
+
+Movie titles and vote counts are excluded from predictors. High-cardinality actor/director fields can make the feature space large. Matplotlib and Seaborn support notebook exploration; the maintained CLI reports numeric results and does not produce charts. This is an exploratory random split, not a forecast validated on future releases.
